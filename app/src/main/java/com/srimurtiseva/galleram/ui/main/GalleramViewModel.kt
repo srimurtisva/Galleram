@@ -1,13 +1,16 @@
 package com.srimurtiseva.galleram.ui.main
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import androidx.work.*
 import com.srimurtiseva.galleram.data.local.MediaScanner
 import com.srimurtiseva.galleram.data.local.dao.MediaDao
 import com.srimurtiseva.galleram.data.remote.TelegramClient
+import com.srimurtiseva.galleram.worker.SyncWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class GalleramViewModel(
+    private val context: Context,
     private val mediaDao: MediaDao,
     private val mediaScanner: MediaScanner,
     private val telegramClient: TelegramClient
@@ -68,6 +72,22 @@ class GalleramViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isSyncing = true) }
             mediaScanner.scanLocalMedia()
+            
+            // Trigger WorkManager for background sync
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            
+            val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                .setConstraints(constraints)
+                .build()
+            
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "media_sync",
+                ExistingWorkPolicy.KEEP,
+                syncRequest
+            )
+
             _state.update { it.copy(isSyncing = false) }
         }
     }

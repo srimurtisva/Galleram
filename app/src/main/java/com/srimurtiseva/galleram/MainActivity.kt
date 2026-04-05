@@ -18,11 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.srimurtiseva.galleram.data.local.GalleramDatabase
 import com.srimurtiseva.galleram.data.local.MediaScanner
 import com.srimurtiseva.galleram.data.remote.TelegramClient
+import com.srimurtiseva.galleram.ui.login.LoginScreen
 import com.srimurtiseva.galleram.ui.main.AuthState
 import com.srimurtiseva.galleram.ui.main.GalleramIntent
 import com.srimurtiseva.galleram.ui.main.GalleramViewModel
@@ -33,12 +33,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Manual DI for the skeleton
-        val db = GalleramDatabase.getDatabase(this)
+        // Get instances from Application
+        val app = application as GalleramApplication
+        val db = app.db
         val mediaDao = db.mediaDao()
         val scanner = MediaScanner(this, mediaDao)
-        val telegramClient = TelegramClient(this)
-        val viewModel = GalleramViewModel(mediaDao, scanner, telegramClient)
+        val telegramClient = app.telegramClient
+        val viewModel = GalleramViewModel(applicationContext, mediaDao, scanner, telegramClient)
 
         setContent {
             GalleramTheme {
@@ -91,7 +92,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             else -> {
-                                // Simple Login UI for the skeleton
                                 LoginScreen(
                                     authState = authState,
                                     onLogin = { viewModel.handleIntent(GalleramIntent.StartLogin(it)) },
@@ -100,43 +100,6 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun LoginScreen(
-    authState: AuthState,
-    onLogin: (String) -> Unit,
-    onOtpSubmit: (String) -> Unit
-) {
-    var text by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
-    
-    androidx.compose.foundation.layout.Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
-    ) {
-        when (authState) {
-            is AuthState.WaitingForOtp -> {
-                androidx.compose.material3.Text("Enter OTP")
-                androidx.compose.material3.TextField(value = text, onValueChange = { text = it })
-                androidx.compose.material3.Button(onClick = { onOtpSubmit(text) }) {
-                    androidx.compose.material3.Text("Submit OTP")
-                }
-            }
-            else -> {
-                androidx.compose.material3.Text("Enter Phone Number")
-                androidx.compose.material3.TextField(value = text, onValueChange = { text = it })
-                androidx.compose.material3.Button(onClick = { onLogin(text) }) {
-                    androidx.compose.material3.Text("Login with Telegram")
-                }
-            }
-        }
-    }
-}
                 }
             }
         }

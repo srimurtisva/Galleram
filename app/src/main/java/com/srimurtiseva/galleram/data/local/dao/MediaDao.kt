@@ -34,4 +34,13 @@ interface MediaDao {
 
     @Query("SELECT localId FROM media")
     suspend fun getAllLocalIds(): List<String>
+
+    @Query("SELECT * FROM media WHERE syncStatus = 'local' ORDER BY dateModified DESC")
+    suspend fun getUnsyncedMedia(): List<MediaEntity>
+
+    @Query("UPDATE media SET syncStatus = :status WHERE localId = :localId")
+    suspend fun updateSyncStatus(localId: String, status: String)
+
+    @Query("UPDATE media SET remoteUniqueId = :remoteId, messageId = :msgId, syncStatus = 'synced' WHERE localId = :localId")
+    suspend fun markAsSynced(localId: String, remoteId: String, msgId: Long)
 }
