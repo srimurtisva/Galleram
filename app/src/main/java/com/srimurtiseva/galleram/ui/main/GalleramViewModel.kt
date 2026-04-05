@@ -49,6 +49,7 @@ class GalleramViewModel(
             is GalleramIntent.StartLogin -> startTelegramLogin(intent.phoneNumber)
             is GalleramIntent.SubmitOtp -> submitOtp(intent.otp)
             is GalleramIntent.SubmitPassword -> submitPassword(intent.password)
+            is GalleramIntent.SelectMedia -> _state.update { it.copy(selectedMedia = intent.media) }
         }
     }
 

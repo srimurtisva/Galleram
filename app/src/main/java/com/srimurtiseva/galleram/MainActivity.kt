@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.srimurtiseva.galleram.data.local.MediaScanner
+import com.srimurtiseva.galleram.ui.detail.MediaDetailScreen
 import com.srimurtiseva.galleram.ui.login.LoginScreen
 import com.srimurtiseva.galleram.ui.main.AuthState
 import com.srimurtiseva.galleram.ui.main.GalleramIntent
@@ -75,7 +77,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        if (state.authState is AuthState.LoggedIn) {
+                        if (state.authState is AuthState.LoggedIn && state.selectedMedia == null) {
                             CenterAlignedTopAppBar(
                                 title = { Text("Galleram") },
                                 actions = {
@@ -98,30 +100,41 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(paddingValues)
                     ) {
-                        when (val authState = state.authState) {
-                            is AuthState.LoggedIn -> {
-                                if (state.isLoading) {
-                                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                                } else {
-                                    MediaGrid(
-                                        items = state.mediaItems,
-                                        columnCount = state.gridColumnCount,
-                                        onItemClick = { /* Handle click */ },
-                                        onZoom = { delta: Int -> viewModel.handleIntent(GalleramIntent.UpdateZoom(delta)) }
-                                    )
-                                }
-                                if (state.isSyncing) {
-                                    LinearProgressIndicator(
-                                        modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)
-                                    )
-                                }
+                        val selectedMedia = state.selectedMedia
+                        if (selectedMedia != null) {
+                            BackHandler {
+                                viewModel.handleIntent(GalleramIntent.SelectMedia(null))
                             }
-                            else -> {
-                                LoginScreen(
-                                    authState = authState,
-                                    onLogin = { viewModel.handleIntent(GalleramIntent.StartLogin(it)) },
-                                    onOtpSubmit = { viewModel.handleIntent(GalleramIntent.SubmitOtp(it)) }
-                                )
+                            MediaDetailScreen(
+                                media = selectedMedia,
+                                onBack = { viewModel.handleIntent(GalleramIntent.SelectMedia(null)) }
+                            )
+                        } else {
+                            when (val authState = state.authState) {
+                                is AuthState.LoggedIn -> {
+                                    if (state.isLoading) {
+                                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                                    } else {
+                                        MediaGrid(
+                                            items = state.mediaItems,
+                                            columnCount = state.gridColumnCount,
+                                            onItemClick = { viewModel.handleIntent(GalleramIntent.SelectMedia(it)) },
+                                            onZoom = { delta: Int -> viewModel.handleIntent(GalleramIntent.UpdateZoom(delta)) }
+                                        )
+                                    }
+                                    if (state.isSyncing) {
+                                        LinearProgressIndicator(
+                                            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)
+                                        )
+                                    }
+                                }
+                                else -> {
+                                    LoginScreen(
+                                        authState = authState,
+                                        onLogin = { viewModel.handleIntent(GalleramIntent.StartLogin(it)) },
+                                        onOtpSubmit = { viewModel.handleIntent(GalleramIntent.SubmitOtp(it)) }
+                                    )
+                                }
                             }
                         }
                     }

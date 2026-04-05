@@ -14,6 +14,7 @@ data class GalleramState(
     val isSyncing: Boolean = false,
     val isLoading: Boolean = true,
     val authState: AuthState = AuthState.LoggedOut,
+    val selectedMedia: MediaEntity? = null,
     val errorMessage: String? = null
 )
 
@@ -37,4 +38,7 @@ sealed class GalleramIntent {
     data class StartLogin(val phoneNumber: String) : GalleramIntent()
     data class SubmitOtp(val otp: String) : GalleramIntent()
     data class SubmitPassword(val password: String) : GalleramIntent()
+    
+    // UI Intents
+    data class SelectMedia(val media: MediaEntity?) : GalleramIntent()
 }
