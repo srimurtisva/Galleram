@@ -10,18 +10,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import com.srimurtiseva.galleram.data.local.GalleramDatabase
 import com.srimurtiseva.galleram.data.local.MediaScanner
-import com.srimurtiseva.galleram.data.remote.TelegramClient
 import com.srimurtiseva.galleram.ui.login.LoginScreen
 import com.srimurtiseva.galleram.ui.main.AuthState
 import com.srimurtiseva.galleram.ui.main.GalleramIntent
@@ -29,11 +30,11 @@ import com.srimurtiseva.galleram.ui.main.GalleramViewModel
 import com.srimurtiseva.galleram.ui.main.MediaGrid
 import com.srimurtiseva.galleram.ui.theme.GalleramTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Get instances from Application
         val app = application as GalleramApplication
         val db = app.db
         val mediaDao = db.mediaDao()
@@ -73,6 +74,24 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        if (state.authState is AuthState.LoggedIn) {
+                            CenterAlignedTopAppBar(
+                                title = { Text("Galleram") },
+                                actions = {
+                                    IconButton(onClick = { viewModel.handleIntent(GalleramIntent.UpdateZoom(-1)) }) {
+                                        Icon(Icons.Default.Add, contentDescription = "Zoom In")
+                                    }
+                                    IconButton(
+                                        onClick = { viewModel.handleIntent(GalleramIntent.SyncNow) },
+                                        enabled = !state.isSyncing
+                                    ) {
+                                        Icon(Icons.Default.Refresh, contentDescription = "Sync Now")
+                                    }
+                                }
+                            )
+                        }
+                    }
                 ) { paddingValues ->
                     Box(
                         modifier = Modifier
@@ -89,6 +108,11 @@ class MainActivity : ComponentActivity() {
                                         columnCount = state.gridColumnCount,
                                         onItemClick = { /* Handle click */ },
                                         onZoom = { delta: Int -> viewModel.handleIntent(GalleramIntent.UpdateZoom(delta)) }
+                                    )
+                                }
+                                if (state.isSyncing) {
+                                    LinearProgressIndicator(
+                                        modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)
                                     )
                                 }
                             }
