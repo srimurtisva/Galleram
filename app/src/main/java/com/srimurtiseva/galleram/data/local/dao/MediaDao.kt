@@ -1,5 +1,6 @@
 package com.srimurtiseva.galleram.data.local.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -12,6 +13,9 @@ import kotlinx.coroutines.flow.Flow
 interface MediaDao {
     @Query("SELECT * FROM media ORDER BY dateModified DESC")
     fun getAllMediaFlow(): Flow<List<MediaEntity>>
+
+    @Query("SELECT * FROM media ORDER BY dateModified DESC")
+    fun getAllMediaPagingSource(): PagingSource<Int, MediaEntity>
 
     @Query("SELECT * FROM media WHERE hashsum = :hash LIMIT 1")
     suspend fun getByHash(hash: String): MediaEntity?

@@ -70,6 +70,7 @@ dependencies {
     
     // WorkManager
     implementation(libs.androidx.work.runtime)
+    implementation(libs.tdlib)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

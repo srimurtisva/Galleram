@@ -1,12 +1,15 @@
 package com.srimurtiseva.galleram.ui.main
 
+import androidx.paging.PagingData
 import com.srimurtiseva.galleram.data.local.entities.MediaEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * The single source of truth for the Galleram UI.
  */
 data class GalleramState(
-    val mediaItems: List<MediaEntity> = emptyList(),
+    val mediaItems: Flow<PagingData<MediaEntity>> = emptyFlow(),
     val gridColumnCount: Int = 4,        // Dynamic for pinch-to-zoom
     val isSyncing: Boolean = false,
     val isLoading: Boolean = true,
