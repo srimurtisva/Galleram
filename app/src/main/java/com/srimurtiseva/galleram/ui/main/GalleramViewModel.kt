@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class GalleramViewModel(
-    private val context: Context,
+    private val workManager: WorkManager,
     private val mediaDao: MediaDao,
     private val mediaScanner: MediaScanner,
     private val telegramClient: TelegramClient
@@ -82,7 +82,7 @@ class GalleramViewModel(
                 .setConstraints(constraints)
                 .build()
             
-            WorkManager.getInstance(context).enqueueUniqueWork(
+            workManager.enqueueUniqueWork(
                 "media_sync",
                 ExistingWorkPolicy.KEEP,
                 syncRequest

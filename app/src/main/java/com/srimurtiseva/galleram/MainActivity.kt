@@ -39,7 +39,8 @@ class MainActivity : ComponentActivity() {
         val mediaDao = db.mediaDao()
         val scanner = MediaScanner(this, mediaDao)
         val telegramClient = app.telegramClient
-        val viewModel = GalleramViewModel(applicationContext, mediaDao, scanner, telegramClient)
+        val workManager = androidx.work.WorkManager.getInstance(applicationContext)
+        val viewModel = GalleramViewModel(workManager, mediaDao, scanner, telegramClient)
 
         setContent {
             GalleramTheme {
